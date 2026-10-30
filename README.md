@@ -53,6 +53,12 @@ npm start
 
 The server serves the built site and API from the same origin. Set `NODE_ENV=production` behind HTTPS so authentication cookies use the `Secure` flag.
 
+## Netlify
+
+The included `netlify.toml` configures Netlify to build and publish the frontend. Netlify runs this project in browser-only demo mode: workout timers and progress work without the Express API, and completed workouts are stored in the visitor's browser. Browser demo data is not shared across devices and does not provide accounts.
+
+For account sign-in and server-backed progress, deploy the Express API and a persistent database separately; Netlify static hosting does not run the Express server or persist the local SQLite database.
+
 ## Validation
 
 ```sh

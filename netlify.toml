@@ -1,0 +1,11 @@
+[build]
+command = "npm run build"
+publish = "dist"
+
+[build.environment]
+VITE_DEMO_MODE = "true"
+
+[[redirects]]
+from = "/*"
+to = "/index.html"
+status = 200

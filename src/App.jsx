@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { activityCategories } from '../shared/activities.js';
+import { buildDemoProgress } from '../shared/demo-progress.js';
 import './App.css';
+
+const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === 'true';
+const DEMO_COMPLETIONS_KEY = 'fitlife-demo-completions';
 
 const defaultProgress = {
   date: '',
@@ -8,6 +12,33 @@ const defaultProgress = {
   totals: { completed: 0, minutes: 0 },
   week: [],
 };
+
+function getDemoCompletions() {
+  const saved = window.localStorage.getItem(DEMO_COMPLETIONS_KEY);
+  if (!saved) return [];
+
+  const completions = JSON.parse(saved);
+  if (!Array.isArray(completions)) {
+    throw new Error('Saved workout history is invalid. Clear this site’s data to reset it.');
+  }
+  return completions;
+}
+
+function getDemoProgress() {
+  return buildDemoProgress(getDemoCompletions());
+}
+
+function saveDemoCompletion(activityId) {
+  const completedOn = new Date().toISOString().slice(0, 10);
+  const completions = getDemoCompletions();
+  if (!completions.some((item) =>
+    item.activityId === activityId && item.completedOn === completedOn
+  )) {
+    completions.push({ activityId, completedOn });
+    window.localStorage.setItem(DEMO_COMPLETIONS_KEY, JSON.stringify(completions));
+  }
+  return buildDemoProgress(completions);
+}
 
 const today = new Date();
 const todayLabels = {
@@ -168,6 +199,12 @@ function App() {
   async function loadProgress() {
     setProgressLoading(true);
     try {
+      if (DEMO_MODE) {
+        setProgress(getDemoProgress());
+        setDashboardError('');
+        return;
+      }
+
       const response = await fetch('/api/progress');
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Could not load your progress.');
@@ -185,6 +222,11 @@ function App() {
 
     async function loadUser() {
       try {
+        if (DEMO_MODE) {
+          setProgress(getDemoProgress());
+          return;
+        }
+
         const response = await fetch('/api/auth/me');
         if (response.status === 401) return;
         const data = await response.json();
@@ -233,6 +275,16 @@ function App() {
       setTimerSaving(true);
       setDashboardError('');
       try {
+        if (DEMO_MODE) {
+          const progressData = saveDemoCompletion(timerActivityId);
+          if (active) {
+            setProgress(progressData);
+            setTimerSession(null);
+            setDashboardError('Workout complete! Your progress has been saved on this device.');
+          }
+          return;
+        }
+
         const response = await fetch('/api/progress/complete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -341,7 +393,7 @@ function App() {
   function startActivity(activity) {
     setDashboardError('');
     if (completedToday.has(activity.id)) return;
-    if (!user) {
+    if (!user && !DEMO_MODE) {
       setPendingActivityId(activity.id);
       openAuth('login');
       return;
@@ -388,7 +440,7 @@ function App() {
             <strong>Stay consistent</strong>
             <p>Small steps make strong habits.</p>
           </div>
-          {user ? (
+          {DEMO_MODE ? null : user ? (
             <div className="sidebar-user">
               <span className="user-avatar">{user.name.charAt(0).toUpperCase()}</span>
               <span className="user-name">{user.name}</span>
@@ -412,7 +464,7 @@ function App() {
                 <span className="user-avatar">{user.name.charAt(0).toUpperCase()}</span>
                 <span>{user.name}</span>
               </span>
-            ) : (
+            ) : !DEMO_MODE && (
               <button className="topbar-join" type="button" onClick={() => openAuth('register')}>Create account</button>
             )}
           </div>
@@ -431,7 +483,7 @@ function App() {
           {dashboardError && (
             <p className={`dashboard-notice${dashboardError.startsWith('Workout complete') ? ' success' : ''}`} role="status">
               {dashboardError}
-              {!user && dashboardError.startsWith('Workout') && (
+              {!user && !DEMO_MODE && dashboardError.startsWith('Workout') && (
                 <button type="button" onClick={() => openAuth('login')}>Sign in</button>
               )}
               {user && !progressLoading && (
@@ -443,17 +495,17 @@ function App() {
           <section className="stats-grid" aria-label="Workout statistics">
             <article className="stat-card">
               <span className="stat-icon green"><Icon name="activity" /></span>
-              <span className="stat-copy"><small>Today’s workouts</small><strong>{user ? `${progress.completedToday.length}` : '—'}<span> sessions</span></strong></span>
+              <span className="stat-copy"><small>Today’s workouts</small><strong>{user || DEMO_MODE ? `${progress.completedToday.length}` : '—'}<span> sessions</span></strong></span>
               <span className="stat-footnote">Daily total</span>
             </article>
             <article className="stat-card">
               <span className="stat-icon blue"><Icon name="chart" /></span>
-              <span className="stat-copy"><small>This week</small><strong>{user ? weekCompleted : '—'}<span> sessions</span></strong></span>
+              <span className="stat-copy"><small>This week</small><strong>{user || DEMO_MODE ? weekCompleted : '—'}<span> sessions</span></strong></span>
               <span className="stat-footnote">Last 7 days</span>
             </article>
             <article className="stat-card">
               <span className="stat-icon amber"><Icon name="clock" /></span>
-              <span className="stat-copy"><small>Active minutes</small><strong>{user ? progress.totals.minutes : '—'}<span> min</span></strong></span>
+              <span className="stat-copy"><small>Active minutes</small><strong>{user || DEMO_MODE ? progress.totals.minutes : '—'}<span> min</span></strong></span>
               <span className="stat-footnote">All time</span>
             </article>
             <article className="stat-card">
@@ -534,7 +586,7 @@ function App() {
                   );
                 })}
               </div>
-              {!user && (
+              {!user && !DEMO_MODE && (
                 <div className="login-prompt">
                   <span><Icon name="user" size={17} /></span>
                   <p><strong>Save your training history</strong><small>Sign in to record completed workouts and track your progress.</small></p>
@@ -551,7 +603,7 @@ function App() {
                 </div>
                 {progressLoading ? (
                   <div className="chart-loading">Loading activity…</div>
-                ) : user ? (
+                ) : user || DEMO_MODE ? (
                   <DashboardChart week={progress.week} />
                 ) : (
                   <div className="chart-empty">Sign in to see your weekly activity.</div>
