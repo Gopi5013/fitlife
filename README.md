@@ -1,7 +1,10 @@
 # FitLife
 
-FitLife is a React fitness site with an Express authentication API and a SQLite user database.
-Choose Cardio, Workout, or Yoga to see a daily activity list. Signed-in users can start an activity timer; finishing it automatically records the completion and updates daily and weekly progress.
+FitLife is a React fitness site centered on its exercise library. The old “My workouts” plans and sign-in interface have been removed; Gym, Yoga, and Cardio exercises are available without an account.
+
+The Exercises section includes Gym, Yoga, and Cardio libraries with ten guided movements per category. Gym and Cardio demonstrations use animated GIFs from [ExerciseDB by AscendAPI](https://exercisedb.dev/); Yoga demonstrations use on-demand videos from [Pexels](https://www.pexels.com/license/) with source links shown in the exercise guides. ExerciseDB's free GIFs are limited to non-commercial use and require the visible AscendAPI credit; obtain a commercial license before using them commercially. Exercise media URLs and instructions live in `shared/exercises.js`.
+
+Starting an exercise opens its guided timer. When the timer finishes, the exercise is automatically recorded in the progress panel, which shows today's total and category breakdown plus a seven-day history. A day is marked “Done” after at least one exercise is completed. This data is stored locally and does not sync across devices.
 
 ## Requirements
 
@@ -16,22 +19,17 @@ Install dependencies once:
 npm install
 ```
 
-Start the API and frontend in separate terminals:
-
-```sh
-npm run dev:server
-```
+Start the frontend:
 
 ```sh
 npm run dev
 ```
 
-Open the Vite URL printed by the frontend. Vite forwards `/api` requests to the backend at `http://127.0.0.1:3001`.
+Open the Vite URL printed by the frontend. The exercise library does not require the API or a database.
 
-By default, the SQLite database is created at `server/data/fitlife.sqlite`. Set `FITLIFE_DB_PATH` to use another database file and `PORT` to change the server port.
+## Optional API
 
-## Authentication API
-
+The Express API remains available for existing integrations, but the FitLife browser app no longer provides account sign-in or uses these routes.
 - `POST /api/auth/register` — create an account and sign in
 - `POST /api/auth/login` — sign in
 - `GET /api/auth/me` — return the current account
@@ -39,6 +37,8 @@ By default, the SQLite database is created at `server/data/fitlife.sqlite`. Set 
 - `GET /api/progress` — return today's completed activities, all-time totals, and a seven-day summary
 - `POST /api/progress/complete` — record a completed activity for the signed-in user
 - `GET /api/health` — server health check
+
+Start the optional API with `npm run dev:server`. By default, its SQLite database is created at `server/data/fitlife.sqlite`; set `FITLIFE_DB_PATH` to use another database file and `PORT` to change the server port.
 
 Passwords are hashed with bcrypt. Sessions use random, HttpOnly, SameSite cookies; only SHA-256 hashes of session tokens are stored in the database. Sessions expire after seven days, and authentication endpoints are rate-limited.
 
@@ -55,9 +55,7 @@ The server serves the built site and API from the same origin. Set `NODE_ENV=pro
 
 ## Netlify
 
-The included `netlify.toml` configures Netlify to build and publish the frontend. Netlify runs this project in browser-only demo mode: workout timers and progress work without the Express API, and completed workouts are stored in the visitor's browser. Browser demo data is not shared across devices and does not provide accounts.
-
-For account sign-in and server-backed progress, deploy the Express API and a persistent database separately; Netlify static hosting does not run the Express server or persist the local SQLite database.
+The included `netlify.toml` configures Netlify to build and publish the frontend. The exercise library works without the Express API.
 
 ## Validation
 

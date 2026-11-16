@@ -1222,6 +1222,19 @@
 }
 
 @media (max-width: 780px) {
+  .side-nav.exercise-nav {
+    width: auto;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .side-nav.has-library:not(.has-profile) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .side-nav.has-profile {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
   .sidebar {
     position: fixed;
     inset: auto 0 0;
@@ -1817,6 +1830,10 @@
   }
 
   .side-nav.has-profile {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .side-nav.has-library:not(.has-profile) {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
@@ -1826,20 +1843,29 @@
 
   .dashboard[data-mobile-page="dashboard"] .content-grid,
   .dashboard[data-mobile-page="dashboard"] > .profile-section,
+  .dashboard[data-mobile-page="dashboard"] > .exercise-library,
   .dashboard[data-mobile-page="workouts"] > .welcome-row,
   .dashboard[data-mobile-page="workouts"] > .stats-grid,
   .dashboard[data-mobile-page="workouts"] > .workout-banner,
   .dashboard[data-mobile-page="workouts"] .progress-panel,
   .dashboard[data-mobile-page="workouts"] > .profile-section,
+  .dashboard[data-mobile-page="workouts"] > .exercise-library,
   .dashboard[data-mobile-page="progress"] > .welcome-row,
   .dashboard[data-mobile-page="progress"] > .stats-grid,
   .dashboard[data-mobile-page="progress"] > .workout-banner,
   .dashboard[data-mobile-page="progress"] .workout-panel,
   .dashboard[data-mobile-page="progress"] > .profile-section,
+  .dashboard[data-mobile-page="progress"] > .exercise-library,
   .dashboard[data-mobile-page="profile"] > .welcome-row,
   .dashboard[data-mobile-page="profile"] > .stats-grid,
   .dashboard[data-mobile-page="profile"] > .workout-banner,
-  .dashboard[data-mobile-page="profile"] > .content-grid {
+  .dashboard[data-mobile-page="profile"] > .content-grid,
+  .dashboard[data-mobile-page="profile"] > .exercise-library,
+  .dashboard[data-mobile-page="library"] > .welcome-row,
+  .dashboard[data-mobile-page="library"] > .stats-grid,
+  .dashboard[data-mobile-page="library"] > .workout-banner,
+  .dashboard[data-mobile-page="library"] > .content-grid,
+  .dashboard[data-mobile-page="library"] > .profile-section {
     display: none;
   }
 
